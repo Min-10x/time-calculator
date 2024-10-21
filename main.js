@@ -1,63 +1,15 @@
 let currentInput = '000000'; // 현재 입력값을 6자리로 초기화
 let operator = ''; // 연산자
 let previousInput = ''; // 이전 입력값
+let shouldResetInput = false;
+let history = [];
+let currentCalculation = '';
 
-function updateDisplay() {
-  let formattedInput;
-  if (currentInput.length <= 6) {
-    formattedInput = currentInput.padStart(6, '0').replace(/(\d{2})(\d{2})(\d{2})/, '$1:$2:$3');
-  } else {
-    formattedInput = currentInput.padStart(7, '0').replace(/(\d{3})(\d{2})(\d{2})/, '$1:$2:$3');
-  }
-  document.getElementById('display').value = formattedInput;
-}
-
-function appendNumber(num) {
-  if (currentInput === '000000') {
-    currentInput = '';
-  }
-  if (currentInput.length < 6 || (currentInput.length === 6 && parseInt(currentInput.slice(0, 2)) > 99)) {
-    if (currentInput.length === 6 && parseInt(currentInput.slice(0, 2)) > 99) {
-      // 100시간 이상일 때 7자리로 확장
-      currentInput = '0' + currentInput;
-    }
-    if ((currentInput.length === 2 && num <= 5) || 
-        (currentInput.length === 4 && num <= 5) ||
-        currentInput.length < 2 || 
-        currentInput.length === 3 ||
-        currentInput.length === 5 ||
-        currentInput.length === 6) {
-      currentInput += num;
-    }
-  }
-  updateDisplay();
-}
-
-function setOperator(op) {
-  if (previousInput && currentInput) {
-    calculate();
-  }
-  operator = op;
-  if (currentInput) {
-    previousInput = currentInput;
-    currentInput = '000000';
-  }
-  updateDisplay();
-}
-
-function clearDisplay() {
-  currentInput = '000000';
-  operator = '';
-  previousInput = '';
-  updateDisplay();
-}
-
-function backspace() {
-  currentInput = currentInput.slice(0, -1);
-  if (currentInput === '' || currentInput === '0') {
-    currentInput = '000000';
-  }
-  updateDisplay();
+function formatTime(time) {
+  let seconds = parseInt(time.slice(-2) || '00', 10);
+  let minutes = parseInt(time.slice(-4, -2) || '00', 10);
+  let hours = parseInt(time.slice(0, -4) || '0', 10);
+  return `${hours}시간 ${minutes.toString().padStart(2, '0')}분 ${seconds.toString().padStart(2, '0')}초`;
 }
 
 function timeToSeconds(time) {
@@ -87,6 +39,74 @@ function secondsToTime(totalSeconds) {
   } else {
     return `${String(hours).padStart(2, '0')}${String(minutes).padStart(2, '0')}${String(seconds).padStart(2, '0')}`;
   }
+}
+
+function updateDisplay() {
+  let seconds = parseInt(currentInput.slice(-2) || '00', 10);
+  let minutes = parseInt(currentInput.slice(-4, -2) || '00', 10);
+  let hours = parseInt(currentInput.slice(0, -4) || '0', 10);
+
+  let formattedInput = `${hours}시간 ${minutes.toString().padStart(2, '0')}분 ${seconds.toString().padStart(2, '0')}초`;
+  document.getElementById('display').value = formattedInput;
+  updateHistory();
+}
+
+function updateHistory () {
+  const historyElement = document.getElementById('history');
+  let historyHTML = history.join('<br>');
+  if (currentCalculation) {
+    historyHTML += '<br>' + currentCalculation;
+  }
+  historyElement.innerHTML = historyHTML;
+  historyElement.scrollTop = historyElement.scrollHeight;
+}
+
+function appendNumber(num) {
+  if (shouldResetInput) {
+    currentInput = '';
+    shouldResetInput = false;
+  }
+  if (currentInput === '000000') {
+    currentInput = '';
+  }
+
+  if (num === '00' || num === '000') {
+    if (currentInput.length + num.length <= 6 ||
+        (currentInput.length + num.lenth === 7 && parseInt(currentInput.slice(0, 2)) > 99)) {
+      currentInput += num;
+    }
+  } else {
+    // 기존의 단일 숫자 입력 처리
+    if (currentInput.length < 6 || (currentInput.length === 6 && parseInt(currentInput.slice(0, 2)) > 99)) {
+      if (currentInput.length === 6 && parseInt(currentInput.slice(0, 2)) > 99) {
+        // 100시간 이상일 때 7자리로 확장
+        currentInput = '0' + currentInput;
+      }
+      if ((currentInput.length === 2 && num <= 5) || 
+          (currentInput.length === 4 && num <= 5) ||
+          currentInput.length < 2 || 
+          currentInput.length === 3 ||
+          currentInput.length === 5 ||
+          currentInput.length === 6) {
+        currentInput += num;     
+      }
+    }
+  }
+  updateDisplay();
+}
+
+function setOperator(op) {
+ if(currentInput !== '000000') {
+  if (previousInput && operator) {
+    calculate();
+  } else {
+    previousInput = currentInput;
+    currentInput = '000000';
+  }
+  operator = op;
+  currentCalculation = `${formatTime(previousInput)} ${operator}`;
+  updateHistory();
+ }
 }
 
 function calculate() {
@@ -120,8 +140,38 @@ function calculate() {
     result = Math.floor(time1 / parseInt(currentInput, 10));
   }
 
-  previousInput = currentInput;
+  const historyEntry = `${formatTime(previousInput)} ${operator} ${formatTime(currentInput)} = ${formatTime(secondsToTime(result))}`;
+  history.push(historyEntry);
+  currentCalculation = '';
+
+  previousInput = '';
   currentInput = secondsToTime(result);
+  operator = '';
+  shouldResetInput = true;
+  updateDisplay();
+}
+
+function clearDisplay() {
+  currentInput = '000000';
+  operator = '';
+  previousInput = '';
+  updateDisplay();
+}
+
+function backspace() {
+  currentInput = currentInput.slice(0, -1);
+  if (currentInput === '' || currentInput === '0') {
+    currentInput = '000000';
+  }
+  updateDisplay();
+}
+
+function clearAll() {
+  currentInput = '000000';
+  previousInput = '';
+  operator = '';
+  history = [];
+  currentCalculation = '';
   updateDisplay();
 }
 
@@ -137,7 +187,7 @@ function handleKeyboardInput(event) {
   } else if (key === 'Backspace') {
     backspace();
   } else if (key === 'Escape') {
-    clearDisplay();
+    clearAll();
   }
 }
 
@@ -153,18 +203,30 @@ document.addEventListener('DOMContentLoaded', () => {
     button.addEventListener('click', () => setOperator(button.dataset.value));
   });
 
-  document.getElementById('clear').addEventListener('click', clearDisplay);
-  document.getElementById('backspace').addEventListener('click', backspace);
   document.getElementById('equals').addEventListener('click', () => {
-    if (operator && previousInput && currentInput) {
-      calculate();
-      operator = '';
-      previousInput = '';
+    calculate();
+    currentCalculation = '';
+    updateHistory();
+  });
+
+  document.getElementById('clear').addEventListener('click', () => {
+    currentInput = '000000';
+    previousInput = '';
+    operator = '';
+    history = [];
+    currentCalculation = '';
+    updateDisplay();
+  });
+
+  document.getElementById('backspace').addEventListener('click', () => {
+    if (currentInput.length > 0) {
+      currentInput = currentInput.slice(0, -1);
+      if (currentInput.length === 0) {
+        currentInput = '000000';
+      }
+      updateDisplay();
     }
   });
 
-  // 키보드 이벤트 리스너 추가
   document.addEventListener('keydown', handleKeyboardInput);
-
-  updateDisplay();
 });

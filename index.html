@@ -8,7 +8,8 @@
 </head>
 <body>
   <div class="calculator">
-    <input type="text" id="display" readonly value="00:00:00">
+    <div id="history"></div>
+    <input type="text" id="display" readonly value="0시간 00분 00초">
     <div class="buttons">
       <button id="clear">AC</button>
       <div class="empty"></div>
@@ -27,7 +28,8 @@
       <button class="number" data-value="3">3</button>
       <button class="operator" data-value="+">+</button>
       <button class="number" data-value="0" id="zero">0</button>
-      <div class="empty"></div>
+      <button class="number" data-value="00">00</button>
+      <button class="number" data-value="000">000</button>
       <button id="equals">=</button>
     </div>
   </div>

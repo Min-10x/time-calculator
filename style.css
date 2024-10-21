@@ -1,3 +1,4 @@
+/* 기본 스타일 */
 body {
   font-family: Arial, sans-serif;
   display: flex;
@@ -8,15 +9,29 @@ body {
   background-color: #f0f0f0;
 }
 
+/* 계산기 컨테이너 */
 .calculator {
-  margin: 0 auto;
   background-color: #fff;
   border-radius: 10px;
   padding: 20px;
   max-width: 400px;
   width: 100%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* 히스토리 영역 */
+#history {
+  height: 100px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  font-size: 14px;
+  text-align: right;
+  padding: 5px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+}
+
+/* 디스플레이 영역 */
 #display {
   width: 100%;
   height: 100px;
@@ -29,43 +44,15 @@ body {
   box-sizing: border-box;
 }
 
-.operator {
-  background-color: #f0a030;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  color: #fff;
-}
-
-.operator:hover {
-  background-color: #e09020;
-}
-
-#equals {
-  background-color: #f0a030;
-  color: #fff;
-}
-
-#equals:hover {
-  background-color: #e09020;
-}
-
+/* 버튼 그리드 */
 .buttons {
-  width: 100%;
-  height: 100%;
-  font-size: 24px;
-  border-radius: 20px;
-  cursor: pointer;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(5, 1fr);
   gap: 10px;
 }
 
-#zero {
-  grid-column: span 2;
-}
-
+/* 버튼과 empty 공통 스타일 */
 button, .empty {
-  background-color: #f9f9f9;
   height: 80px;
   display: flex;
   justify-content: center;
@@ -74,24 +61,44 @@ button, .empty {
   border: none;
   border-radius: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  transition: box-shadow 0.3s ease;
-}
-
-button:active {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.empty {
   background-color: #f9f9f9;
-  border: none;
-  cursor: default;
+}
+
+button {
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 button:hover {
   background-color: #ddd;
 }
 
+button:active {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transform: translateY(2px);
+}
+
+/* empty 요소 스타일 */
+.empty {
+  cursor: default;
+  box-shadow: none;
+}
+
+/* 특정 버튼 스타일 */
+.operator, #equals {
+  background-color: #f0a030;
+  color: #fff;
+}
+
+.operator:hover, #equals:hover {
+  background-color: #e09020;
+}
+
+#zero, .number[data-value="00"], .number[data-value="000"] {
+  grid-column: span 1;
+}
+
+/* 반응형 디자인 */
 @media (max-width: 480px) {
   .calculator {
     padding: 10px;
